@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>สอบอำนวยการตำรวจ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --app-bg: linear-gradient(45deg, #F0E6D2, #E6D5B8, #D9C5A8, #EFE3D0, #EAE0C8);
+            --text-dark: #4A4036; 
+            --text-muted: #8A7E72;
+            --primary: #8C7A6B; 
+            --primary-light: #A89B8F;
+            --success: #6B705C;
+            --danger: #9A5A55;
+            --slime-exp-bar: linear-gradient(90deg, #C2B8B1 0%, #E6E0D8 100%);
+            --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.5) 100%);
+            --glass-border: rgba(255, 255, 255, 0.9);
+            --glass-border-dark: rgba(255, 255, 255, 0.5);
+            --glass-shadow: 0 16px 40px 0 rgba(0, 0, 0, 0.08);
+        }
+        [data-theme="ocean"] { --app-bg: linear-gradient(45deg, #E0F2F1, #B2DFDB, #80CBC4, #E0F2F1, #E8F5F5); --text-dark: #2A4A4B; --text-muted: #6A8E8F; --primary: #5B8A8D; --primary-light: #7EAFB2; --success: #4A7C59; --danger: #9C4A4A; --slime-exp-bar: linear-gradient(90deg, #B2DFDB 0%, #E0F2F1 100%); }
+        [data-theme="matcha"] { --app-bg: linear-gradient(45deg, #F1F8E9, #DCEDC8, #C5E1A5, #F1F8E9, #E8F5E9); --text-dark: #3A4B2A; --text-muted: #7A8B6A; --primary: #7A8B6A; --primary-light: #9BAA8B; --success: #558B2F; --danger: #C62828; --slime-exp-bar: linear-gradient(90deg, #DCEDC8 0%, #F1F8E9 100%); }
+        [data-theme="lavender"] { --app-bg: linear-gradient(45deg, #F3E5F5, #E1BEE7, #CE93D8, #F3E5F5, #F8BBD0); --text-dark: #4A3A5B; --text-muted: #8A7B9E; --primary: #8C7B9E; --primary-light: #A99BBA; --success: #6B5B8E; --danger: #9E5B7B; --slime-exp-bar: linear-gradient(90deg, #E1BEE7 0%, #F3E5F5 100%); }
+        [data-theme="silver"] { --app-bg: linear-gradient(45deg, #F5F5F5, #E0E0E0, #EEEEEE, #FAFAFA, #FFFFFF); --text-dark: #333333; --text-muted: #888888; --primary: #757575; --primary-light: #9E9E9E; --success: #616161; --danger: #D32F2F; --slime-exp-bar: linear-gradient(90deg, #E0E0E0 0%, #F5F5F5 100%); }
+        [data-theme="pink"] { --app-bg: linear-gradient(45deg, #FFF0F5, #FADADD, #F4C2C2, #FFE4E1, #FFF5EE); --text-dark: #5C3A46; --text-muted: #9E7A85; --primary: #D88C9A; --primary-light: #EBB0BD; --success: #83A889; --danger: #C86C70; --slime-exp-bar: linear-gradient(90deg, #FADADD 0%, #FFF0F5 100%); }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Sarabun', sans-serif; }
+        @keyframes pastelFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        body { background: var(--app-bg); background-size: 400% 400%; animation: pastelFlow 15s ease infinite; color: var(--text-dark); display: flex; justify-content: center; min-height: 100dvh; overflow: hidden; transition: background 0.5s ease; }
+        #app { width: 100%; max-width: 500px; height: 100dvh; position: relative; overflow-y: auto; overflow-x: hidden; background: rgba(255, 255, 255, 0.1); }
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--glass-border); border-left: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border-dark); border-right: 1px solid var(--glass-border-dark); box-shadow: var(--glass-shadow); }
+        .screen { display: none; animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); min-height: 100dvh;}
+        .screen.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .theme-toggle-btn { position: fixed; bottom: 30px; right: 25px; width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.6rem; cursor: pointer; z-index: 50; border: 1px solid var(--glass-border); box-shadow: 0 8px 25px rgba(0,0,0,0.12); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .theme-toggle-btn:active { transform: scale(0.85); }
+        .theme-grid { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+        .theme-swatch { width: 50px; height: 50px; border-radius: 50%; border: 3px solid white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s; position: relative; }
+        .theme-swatch.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; font-size: 1.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .theme-swatch:hover { transform: scale(1.1); }
+        .theme-swatch.active { border: 4px solid var(--text-dark); transform: scale(1.1); }
+        
+        .custom-bg-section { background: rgba(255,255,255,0.5); padding: 15px; border-radius: 20px; border: 1px solid var(--glass-border); margin-top: 15px; }
+        .custom-bg-controls { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .custom-bg-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: 600; color: var(--text-dark); }
+        .custom-select { padding: 6px 10px; border-radius: 10px; border: 1px solid var(--glass-border); background: white; font-family: 'Sarabun'; outline: none; }
+
+        #home-screen { display: flex; flex-direction: column; height: 100dvh; padding: clamp(20px, 4vh, 30px) 24px; gap: clamp(10px, 2vh, 16px); }
+        .profile-card { display: flex; align-items: center; padding: 20px; border-radius: 24px; background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 100%); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); border: 1px solid white; margin-bottom: 4px; position: relative; flex-shrink: 0; }
+        .edit-profile-btn { position: absolute; top: 12px; right: 15px; background: rgba(255, 255, 255, 0.9); border: 1px solid var(--glass-border); border-radius: 50%; width: 34px; height: 34px; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05); z-index: 2; transition: all 0.2s; display: flex; justify-content: center; align-items: center; }
+        .edit-profile-btn:active { transform: scale(0.9); }
+        .profile-img-box { width: 60px; height: 60px; border-radius: 18px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); display: flex; justify-content: center; align-items: center; font-size: 1.8rem; border: 2px solid white; box-shadow: 0 8px 15px rgba(0,0,0,0.1); margin-right: 16px; flex-shrink: 0; background-size: cover; background-position: center; }
+        .greeting-text { font-size: 0.85rem; color: var(--primary); font-weight: 700; margin-bottom: 2px; }
+        .profile-info h1 { font-size: clamp(1.1rem, 4vw, 1.25rem); font-weight: 700; margin-bottom: 4px; color: var(--text-dark); }
+        .level-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.5); color: var(--primary); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--glass-border); }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; flex-shrink: 0; }
+        .stat-card { display: flex; align-items: center; padding: 14px 12px; border-radius: 20px; background: rgba(255,255,255,0.7); border: 1px solid white; box-shadow: 0 8px 20px rgba(0,0,0,0.03); }
+        .stat-icon { width: 38px; height: 38px; border-radius: 12px; background: white; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; margin-right: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); flex-shrink: 0; }
+        .stat-details { display: flex; flex-direction: column; }
+        .stat-num { font-size: clamp(0.9rem, 3vw, 1.1rem); font-weight: 700; color: var(--text-dark); line-height: 1.2;}
+        .stat-text { font-size: 0.75rem; color: var(--text-muted); font-weight: 600;}
+
+        /* ระบบสัตว์เลี้ยงและตกแต่ง */
+        .slime-card { flex: 1; min-height: 200px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 28px; background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.8) 100%); border: 1px solid white; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); padding: 10px; text-align: center; margin-top: 4px; cursor: pointer; user-select: none; -webkit-user-select: none;}
+        .pet-studio-btn { position: absolute; top: 15px; left: 15px; background: rgba(255, 255, 255, 0.8); border: 1px solid white; border-radius: 50%; width: 42px; height: 42px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.08); z-index: 10; transition: all 0.2s; display: flex; justify-content: center; align-items: center; }
+        .pet-studio-btn:active { transform: scale(0.85); }
+        .swap-btn { position: absolute; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.8); border: 1px solid white; border-radius: 50%; width: 42px; height: 42px; font-size: 1.3rem; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.08); z-index: 10; transition: all 0.2s; display: flex; justify-content: center; align-items: center; }
+        .swap-btn:active { transform: scale(0.85); }
+        
+        .glow-circle { position: absolute; width: 160px; height: 160px; border-radius: 50%; z-index: 0; animation: pulseGlow 3s infinite alternate; top: 20%; transition: background 0.5s ease; }
+        .glow-blue { background: radial-gradient(circle, rgba(168, 155, 143, 0.5) 0%, rgba(255,255,255,0) 70%); }
+        .glow-pink { background: radial-gradient(circle, rgba(217, 197, 187, 0.6) 0%, rgba(255,255,255,0) 70%); }
+        @keyframes pulseGlow { 0% { transform: scale(0.9); opacity: 0.5; } 100% { transform: scale(1.3); opacity: 1; } }
+
+        #particle-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        .bubble { position: absolute; background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.3)); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 50%; bottom: 40%; animation: floatUp 1.5s ease-in forwards; }
+        .heart-particle { position: absolute; color: #D9C5BB; bottom: 40%; animation: floatUp 1.5s ease-in forwards; text-shadow: 0 2px 5px rgba(255, 255, 255, 0.5); }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-100px) scale(1.2); opacity: 0; } }
+        
+        /* พื้นที่ลากของตกแต่ง */
+        #decor-sandbox { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; overflow: hidden; }
+        .decor-item { position: absolute; z-index: 3; pointer-events: auto; touch-action: none; cursor: grab; transform-origin: center center; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+        .decor-item:active { cursor: grabbing; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.2)); }
+        .decor-item.locked { cursor: pointer; }
+
+        .slime-graphic { position: relative; z-index: 1; margin-bottom: 5px; display: flex; justify-content: center; align-items: center; height: 130px; width: 130px; }
+        .slime-graphic img { width: 120px; height: auto; filter: drop-shadow(0 15px 10px rgba(0,0,0,0.15)); transition: all 0.2s ease; object-fit: contain; }
+
+        .anim-idle { animation: breathSlime 3s infinite ease-in-out; }
+        @keyframes breathSlime { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.05, 0.95); } }
+        .anim-bounce { animation: bounceSlime 0.6s ease-in-out; }
+        @keyframes bounceSlime { 0%, 100% { transform: scale(1, 1) translateY(0); } 25% { transform: scale(1.15, 0.85) translateY(10px); } 50% { transform: scale(0.85, 1.15) translateY(-25px); } 75% { transform: scale(1.05, 0.95) translateY(0); } }
+        .anim-spin { animation: spinSlime 0.8s ease-in-out; }
+        @keyframes spinSlime { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
+        .anim-highjump { animation: highJumpSlime 0.8s ease-out; }
+        @keyframes highJumpSlime { 0%, 100% { transform: scale(1, 1) translateY(0); } 30% { transform: scale(0.8, 1.2) translateY(-40px); } 50% { transform: scale(1.1, 0.9) translateY(-45px); } 80% { transform: scale(0.9, 1.1) translateY(5px); } }
+
+        .slime-info { z-index: 4; width: 85%; max-width: 250px; pointer-events: none;}
+        .slime-info h2 { font-size: 1.2rem; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; }
+        .exp-container { width: 100%; background: rgba(0,0,0,0.06); border-radius: 12px; height: 14px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.8); margin-bottom: 6px;}
+        .exp-bar { height: 100%; background: var(--slime-exp-bar); width: 0%; transition: width 0.6s ease-out; border-radius: 12px; }
+        .exp-text { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); }
+        .exp-hint { font-size: 0.8rem; color: var(--primary); margin-top: 6px; font-weight: 600; background: rgba(255, 255, 255, 0.5); border: 1px solid var(--glass-border); display: inline-block; padding: 4px 12px; border-radius: 10px;}
+
+        .action-section { padding-bottom: 10px; display: flex; justify-content: center; margin-top: auto; flex-shrink: 0; }
+        .start-exam-btn { width: 100%; height: 60px; border-radius: 22px; border: none; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; font-size: 1.15rem; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 12px; box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15), inset 0 2px 4px rgba(255,255,255,0.2); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .start-exam-btn:active { transform: scale(0.96); }
+        .btn-icon { background: rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1rem; }
+
+        /* Modal ทั่วไป */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 110; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content { width: 90%; max-width: 400px; border-radius: 36px; padding: 25px; transform: translateY(20px); transition: transform 0.3s; background: var(--glass-bg); box-shadow: var(--glass-shadow); border: 1px solid var(--glass-border); max-height: 90dvh; overflow-y: auto;}
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 1.3rem; font-weight: 700; color: var(--text-dark); margin:0;}
+        .close-modal-btn { background: #ffffff; border: 1px solid var(--glass-border); width: 36px; height: 36px; border-radius: 50%; font-size: 1rem; color: var(--text-dark); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.2s; display: flex; justify-content: center; align-items: center;}
+        
+        /* Pet Studio UI */
+        .studio-section { background: rgba(255,255,255,0.5); padding: 15px; border-radius: 20px; border: 1px solid var(--glass-border); margin-bottom: 15px; }
+        .studio-title { font-size: 1.05rem; font-weight: 700; color: var(--text-dark); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .pet-list-item { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 15px; margin-bottom: 8px; border: 1px solid var(--glass-border); }
+        .pet-list-img { width: 40px; height: 40px; border-radius: 10px; object-fit: contain; background: rgba(0,0,0,0.05); }
+        .pet-slider-col { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .pet-slider-col label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+        .pet-size-slider { width: 100%; accent-color: var(--primary); }
+        .del-pet-btn { background: #ffebee; color: #c62828; border: none; border-radius: 10px; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+
+        /* Bottom Sheet (วิชา) */
+        .sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 90; opacity: 0; visibility: hidden; transition: 0.4s; }
+        .sheet-overlay.active { opacity: 1; visibility: visible; }
+        .bottom-sheet { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%); width: 100%; max-width: 500px; background: rgba(255,255,255,0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 40px 40px 0 0; padding: 24px; z-index: 100; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); border-top: 1px solid var(--glass-border); max-height: 85vh; display: flex; flex-direction: column; }
+        .bottom-sheet.active { transform: translateX(-50%) translateY(0); }
+        .sheet-drag-handle { width: 50px; height: 5px; background: rgba(0,0,0,0.15); border-radius: 10px; margin: 0 auto 20px; }
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .sheet-content { overflow-y: auto; padding-bottom: 20px; }
+        .subject-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .subject-card { padding: 20px 18px; border-radius: 28px; background: rgba(255,255,255,0.7); border: 1px solid var(--glass-border); display: flex; flex-direction: column; justify-content: space-between; height: 140px; cursor: pointer; transition: all 0.2s; }
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
+        .icon-box { width: 44px; height: 44px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; background: #fff; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); }
+        .action-arrow { width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.05); color: var(--primary); display: flex; justify-content: center; align-items: center; font-size: 0.9rem; font-weight: bold; }
+        .sub-title { font-weight: 700; font-size: 1.05rem; margin-bottom: 4px; line-height: 1.3; color: var(--text-dark); margin-top: auto;}
+        .badge { display: inline-block; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; }
+
+        .topic-list { display: flex; flex-direction: column; gap: 14px; padding-right: 5px;}
+        .topic-btn { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-radius: 24px; font-size: 1rem; font-weight: 600; cursor: pointer; color: var(--text-dark); transition: 0.2s; text-align: left; background: rgba(255,255,255,0.6); border: 1px solid var(--glass-border); box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .topic-count { font-size: 0.85rem; color: var(--primary); background: rgba(255,255,255,0.7); padding: 4px 12px; border-radius: 12px; font-weight: 700; border: 1px solid var(--glass-border); }
+
+        .form-input-group { margin-bottom: 16px; }
+        .form-label { display: block; font-weight: 700; font-size: 0.95rem; color: var(--text-dark); margin-bottom: 8px; }
+        .form-input { width: 100%; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.8); font-size: 1rem; }
+        .form-file { width: 100%; padding: 10px 0; font-size: 0.9rem; }
+        .action-btn { width: 100%; padding: 18px; color: white; border: none; border-radius: 24px; font-size: 1.1rem; font-weight: 600; margin-top: 15px; cursor: pointer; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); box-shadow: 0 8px 20px rgba(0,0,0,0.15); transition: all 0.2s; }
+        .action-btn:active { transform: scale(0.96); }
+        .secondary-btn { background: rgba(255,255,255,0.8); color: var(--text-dark); border: 1px solid var(--glass-border); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+        /* หน้าข้อสอบ */
+        .quiz-container { padding: 0 20px 40px; }
+        .quiz-top-banner { padding: 40px 20px 10px; margin-bottom: 10px; }
+        .quiz-header { display: flex; align-items: center; gap: 18px; margin-bottom: 25px; }
+        .back-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--glass-border); background: #ffffff; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center; color: var(--text-dark); box-shadow: 0 6px 16px rgba(0,0,0,0.06); transition: 0.2s; }
+        .progress-container { flex: 1; background: var(--glass-bg); padding: 14px; border-radius: 20px; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
+        .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem;}
+        .progress-bar { height: 10px; background: rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden; }
+        .progress { height: 100%; background: linear-gradient(to right, var(--primary), var(--primary-light)); width: 0%; transition: 0.4s ease-out; border-radius: 10px; }
+        .question-box { padding: 30px 20px; border-radius: 30px; margin-bottom: 20px; }
+        #question-count { color: var(--primary); font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
+        .question-text { font-size: 1.2rem; font-weight: 600; line-height: 1.5; color: var(--text-dark); }
+        .options-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px;}
+        .opt-btn { background: rgba(255,255,255,0.6); border: 1px solid var(--glass-border); padding: 20px; border-radius: 24px; text-align: left; font-size: 1rem; cursor: pointer; transition: all 0.2s; font-weight: 500; color: var(--text-dark); box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .opt-btn.correct { background: rgba(255,255,255,0.95); border-color: var(--success); color: var(--success); font-weight: 600; box-shadow: 0 4px 20px rgba(0,0,0,0.05); transform: scale(1.02); }
+        .opt-btn.wrong { background: rgba(255,255,255,0.95); border-color: var(--danger); color: var(--danger); font-weight: 600; box-shadow: 0 4px 20px rgba(0,0,0,0.05); transform: scale(0.98); }
+        #reaction-container { display: none; justify-content: center; align-items: center; margin: 15px 0; }
+        #reaction-container img { width: 100px; height: auto; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); object-fit: contain; }
+        .reaction-pop { animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .reaction-shake { animation: shakeWrong 0.5s ease-in-out; }
+        .explanation-box { display: none; padding: 20px; border-radius: 24px; border-left: 6px solid var(--primary); animation: slideDown 0.3s ease; }
+        .explanation-box.wrong-ans { background: rgba(255, 255, 255, 0.8); border-left-color: var(--danger); }
+        .explanation-box.correct-ans { background: rgba(255, 255, 255, 0.8); border-left-color: var(--success); }
+        .explanation-title { font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; font-size: 1.05rem;}
+        .explanation-text { font-size: 0.95rem; line-height: 1.5; }
+        
+        /* หน้าผลลัพธ์และการ์ด */
+        .result-container { text-align: center; padding: 24px 20px; margin: 0 20px; border-radius: 32px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .score-circle { width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.5)); color: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center; border: 5px solid #ffffff; box-shadow: var(--glass-shadow); margin: 0 auto; }
+        .score-circle span { font-size: 3rem; font-weight: 700; line-height: 1; margin-bottom: 2px; color: var(--text-dark);}
+        .score-circle small { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); }
+        .exp-reward-box { background: rgba(255, 255, 255, 0.6); border: 1px solid var(--glass-border); border-radius: 16px; padding: 10px 20px; display: inline-flex; justify-content: space-between; align-items: center; gap: 15px; width: 100%; max-width: 260px; }
+        .exp-reward-text { font-size: 0.85rem; font-weight: 600; color: var(--text-dark); }
+        #session-exp-text { font-size: 1rem; font-weight: 700; color: var(--primary); }
+        .star-rating { display: flex; justify-content: center; gap: 6px; font-size: 1.6rem; color: #D4AF37; margin-bottom: 4px; }
+        .star-empty { color: rgba(0,0,0,0.1); }
+        .result-container h2 { font-size: 1.4rem; margin: 0; color: var(--text-dark); }
+        .challenge-box { width: 100%; padding: 16px; border-radius: 20px; background: rgba(255,255,255,0.6); border: 1px solid white; text-align: left; margin-top: 5px; }
+        .challenge-box h4 { margin-bottom: 10px; font-size: 0.95rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px; }
+        .challenge-textarea { width: 100%; height: 55px; border-radius: 12px; border: 1px solid var(--glass-border); padding: 10px; font-family: inherit; font-size: 0.9rem; resize: none; margin-bottom: 12px; background: rgba(255,255,255,0.8); outline: none;}
+        .result-btn-group { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+
+        #share-preview-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 200; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+        #share-card { width: 100%; max-width: 350px; background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%); border-radius: 30px; padding: 30px; text-align: center; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 4px solid white; }
+        .share-slime-img { width: 100px; height: auto; margin-bottom: 15px; object-fit: contain;}
+        .share-score { font-size: 3rem; font-weight: 800; color: var(--primary); margin: 10px 0; }
+        .share-msg { font-size: 1.1rem; font-weight: 600; color: var(--text-dark); background: rgba(255,255,255,0.8); padding: 15px; border-radius: 15px; border: 2px dashed var(--primary-light); margin-top: 15px; line-height: 1.4; }
+        .share-hint { color: white; margin-top: 20px; font-weight: 500; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        
+        <div id="home-screen" class="screen active">
+            
+            <div class="profile-card glass-panel">
+                <button class="edit-profile-btn" onclick="openProfileModal()">✏️</button>
+                <div class="profile-img-box" id="profile-img-display">👮‍♂️</div>
+                <div class="profile-info">
+                    <p class="greeting-text" id="greeting-display">สวัสดี ว่าที่นายสิบ!</p>
+                    <h1>สายอำนวยการตำรวจ</h1>
+                    <div class="level-badge">⭐ พร้อมสอบ 100%</div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card glass-panel">
+                    <div class="stat-icon">📚</div>
+                    <div class="stat-details"><span class="stat-num">6 หมวด</span><span class="stat-text">วิชาสอบ</span></div>
+                </div>
+                <div class="stat-card glass-panel">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-details"><span class="stat-num">เป้าหมาย</span><span class="stat-text">สอบติดตัวจริง</span></div>
+                </div>
+            </div>
+
+            <div class="slime-card glass-panel" id="slime-container-card">
+                <button class="pet-studio-btn" onclick="openPetStudio(event)" title="Pet Studio">🎒</button>
+                <button class="swap-btn" onclick="toggleSlime(event)" title="สลับสัตว์เลี้ยง">🐾</button>
+                
+                <div id="slime-glow" class="glow-circle glow-blue"></div>
+                <div id="particle-container"></div>
+                
+                <div id="decor-sandbox"></div>
+
+                <div class="slime-graphic anim-idle" id="slime-icon-container">
+                    <img id="slime-main-img" src="slime_idle.png" alt="My Pet">
+                </div>
+
+                <div class="slime-info">
+                    <h2 id="slime-name">น้องสไลม์ (Lv.1)</h2>
+                    <div class="exp-container"><div class="exp-bar" id="slime-exp-bar"></div></div>
+                    <div class="exp-text" id="slime-exp-text">0 / 50 EXP</div>
+                    <div class="exp-hint">จิ้มฉันสิ! 👆</div>
+                </div>
+            </div>
+
+            <div class="action-section">
+                <button class="start-exam-btn" onclick="playClick(); toggleSubjectSheet(); event.stopPropagation();">
+                    <span>เริ่มลุยข้อสอบเลย</span><div class="btn-icon">📑</div>
+                </button>
+            </div>
+            
+            <button class="theme-toggle-btn glass-panel" onclick="openThemeModal()">🎨</button>
+        </div>
+
+        <div id="pet-studio-modal" class="modal-overlay">
+            <div class="modal-content glass-panel" style="padding-bottom: 20px;">
+                <div class="modal-header">
+                    <h3>🎒 Pet Studio</h3>
+                    <button class="close-modal-btn" onclick="closePetStudio()">✕</button>
+                </div>
+                
+                <div class="studio-section">
+                    <div class="studio-title">
+                        <span>รูปสัตว์เลี้ยง (สูงสุด 5 รูป)</span>
+                        <small id="custom-pet-count" style="color:var(--primary);">0/5</small>
+                    </div>
+                    <input type="file" id="custom-pet-upload" accept="image/*" style="display:none;" onchange="handlePetUpload(event)">
+                    <button class="action-btn secondary-btn" style="margin-top:0; padding:10px; font-size:0.95rem;" onclick="document.getElementById('custom-pet-upload').click()">+ อัปโหลดรูปสัตว์เลี้ยง</button>
+                    <div id="custom-pet-list" style="margin-top: 10px;"></div>
+                </div>
+
+                <div class="studio-section">
+                    <div class="studio-title">ของตกแต่ง (ไม่จำกัด)</div>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:-5px; margin-bottom:10px;">ลากจัดวางได้อิสระที่หน้าหลัก / กดค้างที่รูปเพื่อแก้ไข</p>
+                    <input type="file" id="decor-upload" accept="image/*" style="display:none;" onchange="handleDecorUpload(event)">
+                    <button class="action-btn secondary-btn" style="margin-top:0; padding:10px; font-size:0.95rem;" onclick="document.getElementById('decor-upload').click()">+ อัปโหลดของตกแต่ง</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="decor-edit-modal" class="modal-overlay" style="z-index: 120;">
+            <div class="modal-content glass-panel" style="max-width: 300px; padding: 20px;">
+                <div class="modal-header" style="margin-bottom: 15px;">
+                    <h3 style="font-size: 1.1rem;">ตั้งค่าของตกแต่ง</h3>
+                    <button class="close-modal-btn" style="width:30px; height:30px;" onclick="closeDecorEditModal()">✕</button>
+                </div>
+                
+                <div class="form-input-group">
+                    <label class="form-label" style="font-size:0.85rem;">ขนาดรูป (px)</label>
+                    <input type="range" id="decor-size-slider" min="20" max="150" value="50" class="pet-size-slider" oninput="previewDecorSize(this.value)" onchange="saveDecorSize(this.value)">
+                </div>
+
+                <div class="form-input-group">
+                    <label class="form-label" style="font-size:0.85rem;">องศาเอียง (หมุน)</label>
+                    <input type="range" id="decor-rotate-slider" min="-180" max="180" value="0" class="pet-size-slider" oninput="previewDecorRotate(this.value)" onchange="saveDecorRotate(this.value)">
+                </div>
+
+                <button id="decor-lock-btn" class="action-btn secondary-btn" style="margin-top:5px; padding:12px; font-size:0.95rem;" onclick="toggleDecorLock()">🔒 ล็อคตำแหน่ง</button>
+                <button class="action-btn" style="background: var(--danger); margin-top:10px; padding:12px; font-size:0.95rem; box-shadow:none;" onclick="deleteDecor()">🗑️ ลบทิ้ง</button>
+            </div>
+        </div>
+
+        <div id="theme-modal" class="modal-overlay">
+            <div class="modal-content glass-panel">
+                <div class="modal-header"><h3>เลือกสีธีมแอป</h3><button class="close-modal-btn" onclick="closeThemeModal()">✕</button></div>
+                <div class="theme-grid">
+                    <button class="theme-swatch active" data-theme="earth" onclick="setTheme('earth')" style="background: linear-gradient(135deg, #8C7A6B, #D9C5A8);" title="Earth Tone"></button>
+                    <button class="theme-swatch" data-theme="ocean" onclick="setTheme('ocean')" style="background: linear-gradient(135deg, #5B8A8D, #B2DFDB);" title="Ocean Breeze"></button>
+                    <button class="theme-swatch" data-theme="matcha" onclick="setTheme('matcha')" style="background: linear-gradient(135deg, #7A8B6A, #C5E1A5);" title="Matcha Latte"></button>
+                    <button class="theme-swatch" data-theme="lavender" onclick="setTheme('lavender')" style="background: linear-gradient(135deg, #8C7B9E, #E1BEE7);" title="Lavender Mist"></button>
+                    <button class="theme-swatch" data-theme="silver" onclick="setTheme('silver')" style="background: linear-gradient(135deg, #757575, #E0E0E0);" title="Silver Minimal"></button>
+                    <button class="theme-swatch" data-theme="pink" onclick="setTheme('pink')" style="background: linear-gradient(135deg, #D88C9A, #FADADD);" title="Sakura Pink"></button>
+                </div>
+                <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 20px 0;">
+                <h3 style="font-size: 1.1rem; color: var(--text-dark); margin-bottom: 10px; text-align: center;">รูปพื้นหลังแบบจัดเอง</h3>
+                <div class="custom-bg-section">
+                    <input type="file" id="bg-upload" accept="image/*" style="display:none;" onchange="uploadCustomBg(event)">
+                    <button class="action-btn" style="display: block; width: 100%; margin: 0; padding: 12px; font-size: 1rem; border-radius: 16px;" onclick="document.getElementById('bg-upload').click()">📸 อัปโหลดรูปจากเครื่อง</button>
+                    <div id="bg-controls" class="custom-bg-controls" style="display: none;">
+                        <div class="custom-bg-row"><label>จัดหน้าปกให้พอดี</label><select id="bg-size" onchange="updateBgSettings()" class="custom-select"><option value="cover">เต็มจอ (ตัดขอบให้พอดี)</option><option value="contain">แสดงเต็มรูป (ไม่ถูกตัด)</option></select></div>
+                        <div class="custom-bg-row"><label>ตำแหน่งรูปภาพ</label><select id="bg-position" onchange="updateBgSettings()" class="custom-select"><option value="center">ตรงกลาง</option><option value="top">ชิดบน</option><option value="bottom">ชิดล่าง</option></select></div>
+                        <button class="action-btn" style="background: var(--danger); margin-top: 5px; padding: 10px; font-size: 0.95rem; border-radius: 12px; box-shadow: none;" onclick="removeCustomBg()">🗑️ ลบรูปพื้นหลัง</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="profile-modal" class="modal-overlay">
+            <div class="modal-content glass-panel">
+                <div class="modal-header"><h3>ตั้งค่าโปรไฟล์</h3><button class="close-modal-btn" onclick="closeProfileModal()">✕</button></div>
+                <div class="form-input-group"><label class="form-label">รูปโปรไฟล์</label><input type="file" id="profile-upload" class="form-file" accept="image/*"></div>
+                <div class="form-input-group"><label class="form-label">ชื่อของคุณ</label><input type="text" id="profile-name-input" class="form-input" placeholder="ใส่ชื่อตรงนี้เลย"></div>
+                <button class="action-btn" style="display: block; width: 100%;" onclick="saveProfile()">บันทึกข้อมูล</button>
+            </div>
+        </div>
+
+        <div id="quiz-screen" class="screen">
+            <div class="quiz-top-banner"><h1 id="header-title" style="font-size: 1.5rem; margin:0; text-align: left;">ชื่อวิชา</h1></div>
+            <div class="quiz-container">
+                <div class="quiz-header">
+                    <button class="back-btn" onclick="playClick(); goHome()">❮</button>
+                    <div class="progress-container glass-panel"><div class="progress-header"><span>ความคืบหน้า</span><small id="progress-text">0%</small></div><div class="progress-bar"><div class="progress" id="progress"></div></div></div>
+                </div>
+                <div class="question-box glass-panel"><div id="question-count">ข้อ 1</div><div class="question-text" id="question-text"></div></div>
+                <div class="options-list" id="options-list"></div>
+                <div id="reaction-container"><img id="reaction-slime-img" src=""></div>
+                <div id="explanation-box" class="explanation-box glass-panel"><div class="explanation-title" id="explanation-title">💡 สรุป:</div><div class="explanation-text" id="explanation-text"></div></div>
+                <button class="action-btn" id="next-btn" style="display:none;" onclick="playClick(); nextQuestion()">ข้อถัดไป ➔</button>
+            </div>
+        </div>
+
+        <div id="result-screen" class="screen">
+            <div class="quiz-top-banner" style="padding-top: 35px; padding-bottom: 10px;"><h1 style="font-size: 1.5rem; margin:0; text-align: center;">สรุปผลการทดสอบ</h1></div>
+            <div class="result-container glass-panel">
+                <div class="score-circle"><span id="score-number">0</span><small id="score-total">คะแนน</small></div>
+                <div class="exp-reward-box"><div class="exp-reward-text">EXP ที่ได้รอบนี้</div><span id="session-exp-text">+0 EXP</span></div>
+                <div class="star-rating" id="star-rating"></div>
+                <h2 id="result-title">สุดยอดมาก!</h2>
+                <div class="challenge-box">
+                    <h4>💬 เขียนคำท้า</h4><textarea id="challenge-msg" class="challenge-textarea" placeholder="เขียนอะไรลงไปในนี้ก็ได้..."></textarea>
+                    <div class="result-btn-group">
+                        <button class="action-btn" style="margin: 0; padding: 14px; border-radius: 16px; font-size: 1rem;" onclick="showShareCard()">สร้างการ์ดอวดแฟน 📸</button>
+                        <button class="action-btn secondary-btn" style="margin: 0; padding: 14px; border-radius: 16px; font-size: 1rem;" onclick="playClick(); goHome()">กลับหน้าหลัก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="share-preview-overlay" onclick="this.style.display='none'">
+            <div id="share-card">
+                <h3 id="share-title-name" style="font-size: 1.2rem; color: var(--primary);">อ้วนดื้อ</h3><p style="font-size: 0.9rem; color: #888;">ได้ส่งคำท้าหาคุณ!</p>
+                <div style="margin: 20px 0;"><img id="share-slime-img" class="share-slime-img" src="slime_idle.png"><div class="share-score" id="share-score-text">10 / 10</div><div class="star-rating" id="share-stars" style="font-size: 2rem;"></div></div>
+                <div class="share-msg" id="share-msg-display">สู้เค้าได้มั้ยล่ะตัวเธอออ</div><p style="margin-top: 15px; font-size: 0.8rem; color: #aaa;">สอบอำนวยการตำรวจ</p>
+            </div>
+            <div class="share-hint">👆 แคปหน้าจอนี้ส่งให้แฟนได้เลย! (จิ้มเพื่อปิด)</div>
+        </div>
+
+        <div class="sheet-overlay" id="sheet-overlay" onclick="toggleSubjectSheet()"></div>
+        <div class="bottom-sheet" id="subject-sheet">
+            <div class="sheet-drag-handle"></div><div class="sheet-header"><h3>เลือกวิชาสอบ</h3><button class="close-sheet-btn" onclick="toggleSubjectSheet()">✕</button></div>
+            <div class="sheet-content"><div class="subject-grid" id="subject-list"></div></div>
+        </div>
+        <div id="topic-modal" class="modal-overlay"><div class="modal-content glass-panel"><div class="modal-header"><h3 id="modal-title"></h3><button class="close-modal-btn" onclick="closeModal()">✕</button></div><div id="topic-list" class="topic-list"></div></div></div>
+
+    </div>
+
+    <script src="math.js"></script>
+    <script src="thai.js"></script>
+    <script src="english.js"></script>
+    <script src="law.js"></script>
+    <script src="sarabun.js"></script>
+    <script src="computer.js"></script>
+
+    <script>
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        function initAudio() { if(!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+        function playClick() { initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1); }
+        function playPokeSound() { initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(300, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.2); gain.gain.setValueAtTime(0.2, audioCtx.currentTime); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
+        function playCorrectSound() { initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(523, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
+        function playWrongSound() { initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(200, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.4); }
+
+        let totalExp = parseInt(localStorage.getItem('policeExamExp')) || 0;
+        let sessionExp = 0;
+        let activeSlime = localStorage.getItem('activeSlimeCharacter') || 'blue'; 
+        
+        let customPets = JSON.parse(localStorage.getItem('policeCustomPets') || '[]');
+        let customDecors = JSON.parse(localStorage.getItem('policeDecors') || '[]');
+        
+        let currentSubject = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnswered = false;
+
+        function init() {
+            loadTheme();
+            loadProfileData();
+            initSlimeDisplay();
+            updateSlimeUI();
+            renderDecorations();
+            
+            const slimeCard = document.getElementById('slime-container-card');
+            slimeCard.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+                pokeSlime();
+            });
+
+            const subjectInfo = [
+                { id: 'math', title: 'ความสามารถทั่วไป', icon: '🧠', data: typeof mathQuestions !== 'undefined' ? mathQuestions : [] },
+                { id: 'thai', title: 'ภาษาไทย', icon: '🇹🇭', data: typeof thaiQuestions !== 'undefined' ? thaiQuestions : [] },
+                { id: 'english', title: 'ภาษาอังกฤษ', icon: '🇺🇸', data: typeof englishQuestions !== 'undefined' ? englishQuestions : [] },
+                { id: 'law', title: 'กฎหมาย ก.ตร.', icon: '⚖️', data: typeof lawQuestions !== 'undefined' ? lawQuestions : [] },
+                { id: 'sarabun', title: 'งานสารบรรณ', icon: '📄', data: typeof sarabunQuestions !== 'undefined' ? sarabunQuestions : [] },
+                { id: 'computer', title: 'คอมพิวเตอร์', icon: '💻', data: typeof computerQuestions !== 'undefined' ? computerQuestions : [] }
+            ];
+            const list = document.getElementById('subject-list');
+            list.innerHTML = '';
+            subjectInfo.forEach(sub => {
+                if (!sub.data || sub.data.length === 0) return;
+                let totalQ = 0;
+                if (sub.data[0].levels) totalQ = sub.data.reduce((acc, topic) => acc + topic.levels.reduce((sum, lvl) => sum + lvl.questions.length, 0), 0);
+                else if (sub.data[0].topicName) totalQ = sub.data.reduce((acc, topic) => acc + (topic.questions ? topic.questions.length : 0), 0);
+                else totalQ = sub.data.length;
+
+                const div = document.createElement('div');
+                div.className = 'subject-card';
+                div.onclick = () => { playClick(); toggleSubjectSheet(); setTimeout(() => openModal(sub), 300) };
+                div.innerHTML = `<div class="card-top"><div class="icon-box">${sub.icon}</div><div class="action-arrow">➔</div></div><div class="sub-title">${sub.title}</div><div class="badge">${totalQ} ข้อ</div>`;
+                list.appendChild(div);
+            });
+        }
+
+        // =========================================
+        // Pet Studio & Decor System 
+        // =========================================
+        function openPetStudio(e) { e.stopPropagation(); playClick(); renderPetStudio(); document.getElementById('pet-studio-modal').classList.add('active'); }
+        function closePetStudio() { document.getElementById('pet-studio-modal').classList.remove('active'); initSlimeDisplay(); }
+
+        function compressImage(file, maxSize, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width; let h = img.height;
+                    if (w > h && w > maxSize) { h *= maxSize / w; w = maxSize; }
+                    else if (h > maxSize) { w *= maxSize / h; h = maxSize; }
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    callback(canvas.toDataURL('image/png', 0.85));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderPetStudio() {
+            const list = document.getElementById('custom-pet-list');
+            list.innerHTML = '';
+            document.getElementById('custom-pet-count').innerText = `${customPets.length}/5`;
+            
+            customPets.forEach((pet, index) => {
+                const div = document.createElement('div');
+                div.className = 'pet-list-item';
+                div.innerHTML = `
+                    <img src="${pet.src}" class="pet-list-img">
+                    <div class="pet-slider-col">
+                        <label>ขนาดรูป: ${pet.size}px</label>
+                        <input type="range" class="pet-size-slider" min="50" max="250" value="${pet.size}" onchange="updatePetSize(${index}, this.value)">
+                    </div>
+                    <button class="del-pet-btn" onclick="deletePet(${index})">🗑️</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+        function handlePetUpload(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            if(customPets.length >= 5) { alert('อัปโหลดได้สูงสุด 5 รูปครับ'); return; }
+            compressImage(file, 400, (base64) => {
+                customPets.push({ src: base64, size: 120 });
+                localStorage.setItem('policeCustomPets', JSON.stringify(customPets));
+                if(activeSlime !== 'custom') { activeSlime = 'custom'; localStorage.setItem('activeSlimeCharacter', 'custom'); }
+                renderPetStudio();
+            });
+            e.target.value = '';
+        }
+        function updatePetSize(index, val) {
+            customPets[index].size = parseInt(val);
+            localStorage.setItem('policeCustomPets', JSON.stringify(customPets));
+            renderPetStudio();
+        }
+        function deletePet(index) {
+            customPets.splice(index, 1);
+            localStorage.setItem('policeCustomPets', JSON.stringify(customPets));
+            if(customPets.length === 0 && activeSlime === 'custom') {
+                activeSlime = 'blue'; localStorage.setItem('activeSlimeCharacter', 'blue');
+            }
+            renderPetStudio();
+        }
+
+        function handleDecorUpload(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            compressImage(file, 300, (base64) => {
+                // เพิ่ม property rotation
+                const newDecor = { id: Date.now(), src: base64, size: 60, x: 50, y: 50, rotation: 0, locked: false };
+                customDecors.push(newDecor);
+                saveDecors();
+                renderDecorations();
+                closePetStudio(); 
+            });
+            e.target.value = '';
+        }
+        function saveDecors() { localStorage.setItem('policeDecors', JSON.stringify(customDecors)); }
+
+        let currentEditingDecorId = null;
+        function renderDecorations() {
+            const sandbox = document.getElementById('decor-sandbox');
+            sandbox.innerHTML = '';
+            customDecors.forEach(decor => {
+                const img = document.createElement('img');
+                img.src = decor.src;
+                img.className = `decor-item ${decor.locked ? 'locked' : ''}`;
+                img.style.width = decor.size + 'px';
+                img.style.left = decor.x + 'px';
+                img.style.top = decor.y + 'px';
+                // ใส่การหมุนรูปภาพ
+                img.style.transform = `rotate(${decor.rotation || 0}deg)`;
+                img.dataset.id = decor.id;
+                
+                setupDecorInteractions(img, decor);
+                sandbox.appendChild(img);
+            });
+        }
+
+        function setupDecorInteractions(el, decor) {
+            let isDragging = false, startX, startY, initX, initY, longPressTimer;
+            const threshold = 10; 
+
+            const startDrag = (clientX, clientY) => {
+                if(decor.locked) return;
+                isDragging = false;
+                startX = clientX; startY = clientY;
+                initX = decor.x; initY = decor.y;
+            };
+            const moveDrag = (clientX, clientY, e) => {
+                if(decor.locked) return;
+                const dx = clientX - startX; const dy = clientY - startY;
+                if(Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
+                    isDragging = true;
+                    clearTimeout(longPressTimer);
+                    el.style.left = (initX + dx) + 'px';
+                    el.style.top = (initY + dy) + 'px';
+                    
+                    // แก้ไขแจ้งเตือนสีแดงใน Console (ป้องกันการแจ้งเตือน touchmove)
+                    if (e && e.cancelable) {
+                        e.preventDefault();
+                    }
+                }
+            };
+            const endDrag = () => {
+                clearTimeout(longPressTimer);
+                if(isDragging) {
+                    decor.x = parseInt(el.style.left);
+                    decor.y = parseInt(el.style.top);
+                    saveDecors();
+                }
+            };
+
+            el.addEventListener('touchstart', (e) => {
+                e.stopPropagation(); 
+                startDrag(e.touches[0].clientX, e.touches[0].clientY);
+                longPressTimer = setTimeout(() => { openDecorEditModal(decor.id); }, 500);
+            }, {passive: false});
+            
+            el.addEventListener('touchmove', (e) => { 
+                moveDrag(e.touches[0].clientX, e.touches[0].clientY, e); 
+            }, {passive: false});
+            
+            el.addEventListener('touchend', (e) => { 
+                endDrag(); 
+                if(!isDragging && !decor.locked) { pokeSlime(); }
+            });
+
+            el.addEventListener('mousedown', (e) => {
+                e.stopPropagation(); e.preventDefault();
+                startDrag(e.clientX, e.clientY);
+                longPressTimer = setTimeout(() => { openDecorEditModal(decor.id); }, 500);
+                
+                const onMouseMove = (ev) => moveDrag(ev.clientX, ev.clientY, ev);
+                const onMouseUp = () => {
+                    endDrag();
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                    if(!isDragging && !decor.locked) pokeSlime();
+                };
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+            el.addEventListener('dragstart', e => e.preventDefault());
+        }
+
+        function openDecorEditModal(id) {
+            playClick();
+            currentEditingDecorId = id;
+            const decor = customDecors.find(d => d.id === id);
+            if(!decor) return;
+            
+            document.getElementById('decor-size-slider').value = decor.size;
+            document.getElementById('decor-rotate-slider').value = decor.rotation || 0; // ตั้งค่าตัวหมุน
+            
+            const lockBtn = document.getElementById('decor-lock-btn');
+            if(decor.locked) { lockBtn.innerText = '🔓 ปลดล็อคตำแหน่ง'; lockBtn.style.color = '#333'; }
+            else { lockBtn.innerText = '🔒 ล็อคตำแหน่ง'; lockBtn.style.color = '#333'; }
+            
+            document.getElementById('decor-edit-modal').classList.add('active');
+        }
+        function closeDecorEditModal() { document.getElementById('decor-edit-modal').classList.remove('active'); currentEditingDecorId = null; }
+        
+        function previewDecorSize(val) {
+            if(!currentEditingDecorId) return;
+            const el = document.querySelector(`.decor-item[data-id='${currentEditingDecorId}']`);
+            if(el) el.style.width = val + 'px';
+        }
+        function saveDecorSize(val) {
+            const decor = customDecors.find(d => d.id === currentEditingDecorId);
+            if(decor) { decor.size = parseInt(val); saveDecors(); }
+        }
+
+        // ฟังก์ชันสำหรับหมุนรูปภาพแบบเรียลไทม์
+        function previewDecorRotate(val) {
+            if(!currentEditingDecorId) return;
+            const el = document.querySelector(`.decor-item[data-id='${currentEditingDecorId}']`);
+            if(el) el.style.transform = `rotate(${val}deg)`;
+        }
+        function saveDecorRotate(val) {
+            const decor = customDecors.find(d => d.id === currentEditingDecorId);
+            if(decor) { decor.rotation = parseInt(val); saveDecors(); }
+        }
+
+        function toggleDecorLock() {
+            const decor = customDecors.find(d => d.id === currentEditingDecorId);
+            if(decor) { 
+                decor.locked = !decor.locked; saveDecors(); renderDecorations(); 
+                closeDecorEditModal(); playClick();
+            }
+        }
+        function deleteDecor() {
+            customDecors = customDecors.filter(d => d.id !== currentEditingDecorId);
+            saveDecors(); renderDecorations(); closeDecorEditModal(); playClick();
+        }
+
+        // =========================================
+        // สัตว์เลี้ยงหลัก 
+        // =========================================
+        function initSlimeDisplay() {
+            const img = document.getElementById('slime-main-img');
+            const glow = document.getElementById('slime-glow');
+            
+            if (activeSlime === 'custom' && customPets.length > 0) {
+                img.src = customPets[0].src;
+                img.style.width = customPets[0].size + 'px';
+                glow.className = 'glow-circle glow-blue'; 
+            } else if (activeSlime === 'pink') { 
+                img.src = 'pink_idle.png'; img.style.width = '120px'; glow.className = 'glow-circle glow-pink'; 
+            } else { 
+                img.src = 'slime_idle.png'; img.style.width = '120px'; glow.className = 'glow-circle glow-blue'; 
+            }
+        }
+
+        function toggleSlime(e) { 
+            e.stopPropagation(); playClick(); 
+            if (activeSlime === 'blue') activeSlime = 'pink';
+            else if (activeSlime === 'pink') {
+                if(customPets.length > 0) activeSlime = 'custom';
+                else activeSlime = 'blue';
+            }
+            else activeSlime = 'blue';
+            
+            localStorage.setItem('activeSlimeCharacter', activeSlime); 
+            initSlimeDisplay(); 
+        }
+
+        function createParticles(type) {
+            const c = document.getElementById('particle-container');
+            if(!c) return;
+            for(let i=0; i<4; i++){
+                const p = document.createElement('div');
+                if(type === 'blue' || (type === 'custom' && activeSlime !== 'pink')){ 
+                    p.className='bubble'; 
+                    p.style.width=p.style.height=`${Math.random()*15+10}px`; 
+                } else { 
+                    p.className='heart-particle'; 
+                    p.innerHTML='🩷'; 
+                    p.style.fontSize=`${Math.random()*15+15}px`; 
+                }
+                p.style.left = `${Math.random()*80+10}%`;
+                c.appendChild(p); 
+                setTimeout(()=>p.remove(), 1500);
+            }
+        }
+
+        function pokeSlime() {
+            playPokeSound();
+            const container = document.getElementById('slime-icon-container');
+            const img = document.getElementById('slime-main-img');
+            const anims = ['anim-bounce', 'anim-spin', 'anim-highjump'];
+            const rAnim = anims[Math.floor(Math.random()*anims.length)];
+            
+            if(activeSlime === 'custom' && customPets.length > 0) {
+                const rPet = customPets[Math.floor(Math.random()*customPets.length)];
+                img.src = rPet.src;
+                img.style.width = rPet.size + 'px';
+            } else if(activeSlime === 'pink') {
+                img.src = ['pink_happy.png','pink_jump.png','pink_chill.png'][Math.floor(Math.random()*3)];
+            } else {
+                img.src = ['slime_happy.png','slime_sad.png','slime_chill.png'][Math.floor(Math.random()*3)];
+            }
+            
+            container.className = `slime-graphic ${rAnim}`;
+            createParticles(activeSlime);
+            
+            setTimeout(() => { 
+                initSlimeDisplay(); 
+                container.className = 'slime-graphic anim-idle'; 
+            }, 800);
+        }
+
+        function updateSlimeUI() {
+            let temp = totalExp, lv = 1, req = 50;
+            while(temp >= req){ temp -= req; lv++; req = lv * 50; }
+            document.getElementById('slime-name').innerText = (activeSlime === 'custom' && customPets.length > 0) ? `สัตว์เลี้ยง (Lv.${lv})` : `น้องสไลม์ (Lv.${lv})`;
+            document.getElementById('slime-exp-bar').style.width = `${(temp/req)*100}%`;
+            document.getElementById('slime-exp-text').innerText = `${temp} / ${req} EXP`;
+        }
+
+        // =========================================
+        // โค้ดเดิมทั้งหมด 
+        // =========================================
+        function loadTheme() {
+            const customBg = localStorage.getItem('policeExamCustomBg');
+            if (customBg) applyCustomBg(customBg, localStorage.getItem('policeExamCustomBgSize')||'cover', localStorage.getItem('policeExamCustomBgPos')||'center');
+            else { document.documentElement.setAttribute('data-theme', localStorage.getItem('policeExamTheme') || 'earth'); updateThemeSwatches(); }
+        }
+        function openThemeModal() { playClick(); document.getElementById('theme-modal').classList.add('active'); }
+        function closeThemeModal() { document.getElementById('theme-modal').classList.remove('active'); }
+        function setTheme(theme) {
+            playClick();
+            if(localStorage.getItem('policeExamCustomBg')) { localStorage.removeItem('policeExamCustomBg'); document.body.style.background = ''; document.body.style.animation = ''; document.getElementById('bg-controls').style.display = 'none'; }
+            document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('policeExamTheme', theme); updateThemeSwatches(); setTimeout(closeThemeModal, 200);
+        }
+        function updateThemeSwatches() {
+            const current = localStorage.getItem('policeExamTheme') || 'earth';
+            const hasCustomBg = localStorage.getItem('policeExamCustomBg') !== null;
+            document.querySelectorAll('.theme-swatch').forEach(btn => { btn.classList.remove('active'); if(!hasCustomBg && btn.dataset.theme === current) btn.classList.add('active'); });
+        }
+        function uploadCustomBg(event) {
+            const file = event.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result; localStorage.setItem('policeExamCustomBg', base64); localStorage.removeItem('policeExamTheme'); 
+                localStorage.setItem('policeExamCustomBgSize', 'cover'); localStorage.setItem('policeExamCustomBgPos', 'center');
+                applyCustomBg(base64, 'cover', 'center');
+            }
+            reader.readAsDataURL(file);
+        }
+        function applyCustomBg(base64, size, pos) { document.body.style.background = `url(${base64})`; document.body.style.backgroundSize = size; document.body.style.backgroundPosition = pos; document.body.style.backgroundRepeat = 'no-repeat'; document.body.style.backgroundAttachment = 'fixed'; document.body.style.animation = 'none'; updateThemeSwatches(); document.getElementById('bg-controls').style.display = 'flex'; document.getElementById('bg-size').value = size; document.getElementById('bg-position').value = pos; }
+        function updateBgSettings() { const size = document.getElementById('bg-size').value; const pos = document.getElementById('bg-position').value; localStorage.setItem('policeExamCustomBgSize', size); localStorage.setItem('policeExamCustomBgPos', pos); document.body.style.backgroundSize = size; document.body.style.backgroundPosition = pos; }
+        function removeCustomBg() { localStorage.removeItem('policeExamCustomBg'); localStorage.removeItem('policeExamCustomBgSize'); localStorage.removeItem('policeExamCustomBgPos'); document.getElementById('bg-controls').style.display = 'none'; document.body.style.background = ''; document.body.style.animation = ''; setTheme('earth'); }
+
+        function loadProfileData() {
+            const name = localStorage.getItem('policeExamName') || "ว่าที่นายสิบ"; const img = localStorage.getItem('policeExamImage');
+            document.getElementById('greeting-display').innerText = `สวัสดี ${name}!`; document.getElementById('profile-name-input').value = (name === "ว่าที่นายสิบ") ? "" : name;
+            const display = document.getElementById('profile-img-display');
+            if(img){ display.style.backgroundImage = `url(${img})`; display.innerText = ""; } else { display.style.backgroundImage = "linear-gradient(135deg, var(--primary), var(--primary-light))"; display.innerText = "👮‍♂️"; }
+        }
+        function openProfileModal() { playClick(); document.getElementById('profile-modal').classList.add('active'); }
+        function closeProfileModal() { document.getElementById('profile-modal').classList.remove('active'); }
+        function saveProfile() {
+            const name = document.getElementById('profile-name-input').value.trim(); if(name) localStorage.setItem('policeExamName', name);
+            const file = document.getElementById('profile-upload').files[0];
+            if(file){ compressImage(file, 200, (base64) => { localStorage.setItem('policeExamImage', base64); loadProfileData(); closeProfileModal(); }); }
+            else { loadProfileData(); closeProfileModal(); }
+        }
+
+        function toggleSubjectSheet() { document.getElementById('subject-sheet')?.classList.toggle('active'); document.getElementById('sheet-overlay')?.classList.toggle('active'); }
+        function openModal(sub) { 
+            document.getElementById('modal-title').innerText = sub.title; const l = document.getElementById('topic-list'); l.innerHTML = ''; 
+            sub.data.forEach(t => { 
+                const b = document.createElement('button'); b.className = 'topic-btn'; b.style.marginBottom = '12px'; 
+                if (t.levels) { const totalQ = t.levels.reduce((sum, lvl) => sum + lvl.questions.length, 0); b.innerHTML = `<span>${t.topicName}</span><span class="topic-count">${totalQ} ข้อ</span>`; b.onclick = () => showLevelSelection(sub.title, t); } 
+                else if (t.questions) { b.innerHTML = `<span>${t.topicName || 'เริ่มทำข้อสอบ'}</span><span class="topic-count">${t.questions.length} ข้อ</span>`; b.onclick = () => { closeModal(); startQuiz(t.questions, t.topicName || sub.title); }; }
+                l.appendChild(b); 
+            }); 
+            document.getElementById('topic-modal')?.classList.add('active'); 
+        }
+        function showLevelSelection(subjectTitle, topicData) {
+            document.getElementById('modal-title').innerText = subjectTitle; const l = document.getElementById('topic-list'); l.innerHTML = ''; 
+            let subtitle = document.createElement('div'); subtitle.style.fontWeight = '700'; subtitle.style.fontSize = '1.05rem'; subtitle.style.color = 'var(--primary)'; subtitle.style.marginBottom = '20px'; subtitle.innerText = topicData.topicName; l.appendChild(subtitle);
+            topicData.levels.forEach(lvl => { const b = document.createElement('button'); b.className = 'topic-btn'; b.style.marginBottom = '14px'; b.innerHTML = `<span>${lvl.levelName}</span><span class="topic-count">${lvl.questions.length} ข้อ</span>`; b.onclick = () => { closeModal(); startQuiz(lvl.questions, `${topicData.topicName} - ${lvl.levelName}`); }; l.appendChild(b); });
+        }
+        function closeModal() { document.getElementById('topic-modal')?.classList.remove('active'); }
+
+        function startQuiz(qs, title) { currentSubject = qs; currentQuestionIndex = 0; score = 0; sessionExp = 0; document.getElementById('header-title').innerText = title; showScreen('quiz-screen'); loadQuestion(); }
+        function loadQuestion() {
+            isAnswered = false; const q = currentSubject[currentQuestionIndex];
+            document.getElementById('question-text').innerText = q.q; document.getElementById('question-count').innerText = `ข้อ ${currentQuestionIndex+1} / ${currentSubject.length}`;
+            const percent = Math.round((currentQuestionIndex / currentSubject.length) * 100); document.getElementById('progress').style.width = `${percent}%`; document.getElementById('progress-text').innerText = `${percent}%`;
+            document.getElementById('next-btn').style.display='none'; document.getElementById('explanation-box').style.display='none'; document.getElementById('reaction-container').style.display='none';
+            const optDiv = document.getElementById('options-list'); optDiv.innerHTML='';
+            q.options.forEach((o,i)=>{ const b = document.createElement('button'); b.className = 'opt-btn glass-panel'; b.innerText = o; b.onclick = () => checkAnswer(i,b); optDiv.appendChild(b); });
+        }
+        function checkAnswer(idx, btn) {
+            if(isAnswered) return; isAnswered = true; const q = currentSubject[currentQuestionIndex]; const correct = (idx === q.ans); const reactImg = document.getElementById('reaction-slime-img');
+            
+            let happySrc = 'slime_happy.png'; let sadSrc = 'slime_sad.png';
+            if(activeSlime === 'custom' && customPets.length > 0) { happySrc = customPets[0].src; sadSrc = customPets[0].src; reactImg.style.width = customPets[0].size + 'px'; }
+            else if(activeSlime === 'pink') { happySrc = 'pink_happy.png'; sadSrc = 'pink_chill.png'; reactImg.style.width = '100px'; }
+            else { reactImg.style.width = '100px'; }
+
+            if(correct){ playCorrectSound(); btn.classList.add('correct'); score++; sessionExp+=10; reactImg.src=happySrc; reactImg.className='reaction-pop'; }
+            else { playWrongSound(); btn.classList.add('wrong'); document.querySelectorAll('.opt-btn')[q.ans].classList.add('correct'); sessionExp+=2; reactImg.src=sadSrc; reactImg.className='reaction-shake'; }
+            
+            document.getElementById('reaction-container').style.display='flex'; totalExp += (correct?10:2); localStorage.setItem('policeExamExp', totalExp); updateSlimeUI();
+            if(q.exp){ const eb=document.getElementById('explanation-box'); eb.style.display='block'; eb.className=`explanation-box glass-panel ${correct?'correct-ans':'wrong-ans'}`; document.getElementById('explanation-title').innerHTML=correct?'✅ เก่งมาก!':'❌ พลาดนิดเดียว'; document.getElementById('explanation-text').innerText=q.exp; }
+            document.getElementById('next-btn').style.display='block'; document.getElementById('next-btn').innerText = (currentQuestionIndex === currentSubject.length-1) ? "ดูผลคะแนน 🏆" : "ข้อถัดไป ➔";
+        }
+        function nextQuestion() { if(currentQuestionIndex < currentSubject.length-1){ currentQuestionIndex++; loadQuestion(); } else { showResult(); } }
+
+        function renderStars(containerId, score, total) { const container = document.getElementById(containerId); container.innerHTML = ''; const percent = score / total; const starsFilled = Math.round(percent * 6); for(let i=1; i<=6; i++){ const star = document.createElement('span'); if(i <= starsFilled) star.innerHTML = '★'; else { star.innerHTML = '★'; star.className = 'star-empty'; } container.appendChild(star); } }
+        function showResult() { showScreen('result-screen'); document.getElementById('score-number').innerText = score; document.getElementById('score-total').innerText = `จาก ${currentSubject.length} ข้อ`; document.getElementById('session-exp-text').innerText = `+${sessionExp} EXP`; renderStars('star-rating', score, currentSubject.length); }
+        function showShareCard() {
+            const overlay = document.getElementById('share-preview-overlay');
+            document.getElementById('share-title-name').innerText = localStorage.getItem('policeExamName') || "อ้วนดื้อ";
+            document.getElementById('share-score-text').innerText = `${score} / ${currentSubject.length}`;
+            document.getElementById('share-msg-display').innerText = document.getElementById('challenge-msg').value || "สู้เค้าได้มั้ยล่ะตัวเธอออ";
+            
+            const shareImg = document.getElementById('share-slime-img');
+            if(activeSlime === 'custom' && customPets.length > 0) shareImg.src = customPets[0].src;
+            else if(activeSlime === 'pink') shareImg.src = 'pink_idle.png';
+            else shareImg.src = 'slime_idle.png';
+            
+            renderStars('share-stars', score, currentSubject.length); overlay.style.display = 'flex';
+        }
+        function goHome() { document.getElementById('subject-sheet')?.classList.remove('active'); document.getElementById('sheet-overlay')?.classList.remove('active'); showScreen('home-screen'); }
+        function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); const target = document.getElementById(id); if(target) target.classList.add('active'); }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
